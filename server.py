@@ -1,4 +1,5 @@
 #  coding: utf-8 
+import os
 import socketserver
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
@@ -32,7 +33,36 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        # self.request.sendall(bytearray("OK",'utf-8'))
+
+        self.data_list = list(self.data.decode().split(" "))
+        self.command = self.data_list[0]
+        self.path = self.data_list[1]
+        if self.command != "GET":
+            self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed\r\n\r\n405 Method Not Allowed", 'utf-8'))
+            return
+        
+        if self.command == "GET":
+            self.path = "./www" + self.path
+            print(self.path)
+            if os.path.isfile(self.path):
+                print(self.path)
+                if '.html' in self.path:
+                    print("html file")
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + open(self.path).read(), 'utf-8'))
+                elif '.css' in self.path:
+                    print("css file")
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n" + open(self.path).read(), 'utf-8'))
+                else:
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n 404 Not Found", 'utf-8'))
+            elif os.path.isdir(self.path):
+                if self.path[-1] == '/':
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + open(self.path+'index.html').read(), 'utf-8'))
+                else:
+                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\n\r\nMoved Permanently", 'utf-8'))
+            else:
+                self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n404 Not Found", 'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
