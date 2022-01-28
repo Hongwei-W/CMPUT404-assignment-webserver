@@ -55,32 +55,39 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 return  
             if os.path.isfile(self.path):
                 if '.html' in self.path:
-                    content, len_conetent = self.readfile()
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
+                    content, len_content = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 elif '.css' in self.path:
-                    content, len_conetent = self.readfile()
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/css\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
+                    content, len_content = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/css\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 else:
                     rpy_msg = "404 Not Found"
-                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
+                    len_content = self.length_in_bytes(rpy_msg)
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             elif os.path.isdir(self.path):
                 if self.path[-1] == '/':
                     self.path += 'index.html'
-                    content, len_conetent = self.readfile()
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
+                    content, len_content = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 else:
                     rpy_msg = "301 Moved Permanently"
-                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
+                    len_content = self.length_in_bytes(rpy_msg)
+                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             else:
                 rpy_msg = "404 Not Found"
-                self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
+                len_content = self.length_in_bytes(rpy_msg)
+                self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + len_content + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             return
     
     def readfile(self):
         f = open(self.path)
         content = f.read()
         f.close()
-        return content, str(len(content))
+        return content, self.length_in_bytes(content)
+    
+    def length_in_bytes(self, s):
+        # citation https://stackoverflow.com/questions/30686701/python-get-size-of-string-in-bytes/30686735
+        return str(len(s.encode('utf-8')))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
