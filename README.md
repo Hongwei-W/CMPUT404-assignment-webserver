@@ -27,4 +27,5 @@ compatible) http://docs.python.org/2/library/socketserver.html
 
 Collaborators (with Hongwei Wang for Assignment 1)
 ========================
-Zihan Su
+Zihan Su (zsu5)
+Darren Wang (darren3)

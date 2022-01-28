@@ -55,20 +55,32 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 return  
             if os.path.isfile(self.path):
                 if '.html' in self.path:
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + open(self.path).read(), 'utf-8'))
+                    content, len_conetent = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 elif '.css' in self.path:
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\r\n" + open(self.path).read(), 'utf-8'))
+                    content, len_conetent = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/css\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 else:
-                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n 404 Not Found", 'utf-8'))
+                    rpy_msg = "404 Not Found"
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             elif os.path.isdir(self.path):
                 if self.path[-1] == '/':
-                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + open(self.path+'index.html').read(), 'utf-8'))
+                    self.path += 'index.html'
+                    content, len_conetent = self.readfile()
+                    self.request.sendall(bytearray("HTTP/1.1 200 OK\r\nServer: hongwei2/1.0\r\nContent-Type: text/html\r\nContent-Length: }" + len_conetent + "\r\nConnection: close\r\n\r\n" + content, 'utf-8'))
                 else:
-                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\n\r\nMoved Permanently", 'utf-8'))
+                    rpy_msg = "301 Moved Permanently"
+                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             else:
-                self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n404 Not Found", 'utf-8'))
+                rpy_msg = "404 Not Found"
+                self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\nServer: hongwei2/1.0\r\nContent-Type: text/plain\r\nContent-Length: }" + str(len(rpy_msg)) + "\r\nConnection: close\r\n\r\n" + rpy_msg, 'utf-8'))
             return
-
+    
+    def readfile(self):
+        f = open(self.path)
+        content = f.read()
+        f.close()
+        return content, str(len(content))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
